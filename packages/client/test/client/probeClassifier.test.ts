@@ -231,6 +231,20 @@ describe('row: plain-text/unparseable 400, code 0, empty body, 406, any unrecogn
     test('unrecognized 200 result shape (era-ambiguous first-request processing)', () => {
         expect(classify({ kind: 'result', result: { ok: true } })).toEqual({ kind: 'legacy' });
     });
+
+    test('DiscoverResult with an unrecognized resultType is invalid, not modern evidence', () => {
+        for (const resultType of ['partial', 'input_required']) {
+            const result = { ...discoverResult([MODERN]), resultType };
+            expect(classify({ kind: 'result', result })).toEqual({ kind: 'legacy' });
+        }
+    });
+
+    test("DiscoverResult with resultType 'complete' or none is modern", () => {
+        expect(classify({ kind: 'result', result: { ...discoverResult([MODERN]), resultType: 'complete' } })).toMatchObject({
+            kind: 'modern'
+        });
+        expect(classify({ kind: 'result', result: discoverResult([MODERN]) })).toMatchObject({ kind: 'modern' });
+    });
 });
 
 describe('row: -32001 / -32020 / -32021 are NEVER probe-recognized → fall into unrecognized → legacy', () => {

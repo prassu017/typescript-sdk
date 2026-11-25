@@ -196,6 +196,12 @@ export function classifyProbeOutcome(outcome: ProbeOutcome, context: ProbeClassi
 }
 
 function classifyResult(result: unknown, context: ProbeClassifierContext): ProbeVerdict {
+    // The schema defaults an absent `resultType`, but any value other than
+    // 'complete' MUST be treated as invalid (spec), so it is not modern evidence.
+    const resultType = (result as { resultType?: unknown } | null)?.resultType;
+    if (resultType !== undefined && resultType !== 'complete') {
+        return { kind: 'legacy' };
+    }
     // The 2026 wire schema carries the spec receiver-side leniency for
     // `resultType` ('complete'), `ttlMs` (0) and `cacheScope` ('private'), so
     // routing through the codec is behavior-neutral with the prior public-schema
